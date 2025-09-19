@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulasi - Kelompok Alder Lake</title>
+<style>
+  :root{--bg:#0f1724;--card:#071029;--accent:#60a5fa;--muted:#94a3b8}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#071021 0%,#071322 100%);font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:100%;max-width:840px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:12px;padding:24px;box-shadow:0 6px 30px rgba(2,6,23,0.7);color:#e6eef8;position:relative;overflow:hidden}
+  h1{text-align:center;margin:0 0 8px;font-weight:700;font-size:24px;color:#93c5fd}
+  p.lead{text-align:center;color:var(--muted);margin-top:0;margin-bottom:18px;font-size:15px}
+  .device{display:flex;gap:18px;align-items:center}
+  .phone{width:148px;height:260px;border-radius:18px;background:linear-gradient(180deg,#081223,#071322);box-shadow:inset 0 1px 0 rgba(255,255,255,0.02);position:relative;overflow:hidden;padding:12px;display:flex;flex-direction:column;justify-content:flex-end}
+  .screen{background:linear-gradient(180deg,#021024,#001219);border-radius:10px;padding:12px;height:100%;display:flex;flex-direction:column;gap:8px;justify-content:flex-end;color:#bcd7ff;font-size:13px}
+  .item{opacity:0;transform:translateY(6px);transition:all 420ms cubic-bezier(.2,.9,.2,1);display:flex;align-items:center;gap:8px}
+  .item.show{opacity:1;transform:none}
+  .dot{width:8px;height:8px;border-radius:10px;background:linear-gradient(90deg,#93c5fd,#60a5fa)}
+  .progress{height:12px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden;margin-top:12px}
+  .bar{height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#7dd3fc);transition:width 700ms linear}
+  .reveal{margin-top:16px;padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);color:#bfe0ff}
+  .footer{display:flex;gap:12px;align-items:center;margin-top:16px}
+  small.muted{color:var(--muted)}
+  .badge{font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.02)}
+  /* Overlay merah dramatis */
+  .overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,0,0,0.85);color:white;font-size:36px;font-weight:700;display:flex;align-items:center;justify-content:center;text-align:center;z-index:10;opacity:0;transition:opacity 0.8s}
+  .overlay.show{opacity:1}
+  /* Glitch effect */
+  .glitch {
+    position: relative;
+    animation: glitch 1s infinite;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    clip: rect(0, 900px, 0, 0);
+  }
+  .glitch::before {
+    animation: glitchTop 1s infinite linear alternate-reverse;
+    color: #00ffea;
+  }
+  .glitch::after {
+    animation: glitchBottom 1.2s infinite linear alternate-reverse;
+    color: #ff00ff;
+  }
+  @keyframes glitch {
+    0% { transform: none; }
+    20% { transform: skew(5deg); }
+    40% { transform: skew(-5deg); }
+    60% { transform: skew(3deg); }
+    80% { transform: skew(-3deg); }
+    100% { transform: none; }
+  }
+  @keyframes glitchTop {
+    0% { clip: rect(0, 9999px, 0, 0); transform: translate(0, 0); }
+    50% { clip: rect(0, 9999px, 50px, 0); transform: translate(-3px, -3px); }
+    100% { clip: rect(0, 9999px, 0, 0); transform: translate(0, 0); }
+  }
+  @keyframes glitchBottom {
+    0% { clip: rect(0, 9999px, 0, 0); transform: translate(0, 0); }
+    50% { clip: rect(50px, 9999px, 100px, 0); transform: translate(3px, 3px); }
+    100% { clip: rect(0, 9999px, 0, 0); transform: translate(0, 0); }
+  }
+  /* Shake */
+  @keyframes shake{0%{transform:translate(2px,2px)}20%{transform:translate(-2px,-3px)}40%{transform:translate(-3px,0px)}60%{transform:translate(3px,2px)}80%{transform:translate(2px,-2px)}100%{transform:translate(0,0)}}
+  .shake{animation:shake 0.5s;animation-iteration-count:4}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" role="main" aria-live="polite">
+    <div class="overlay" id="overlay">
+      <span class="glitch" data-text="⚠ Data berhasil didapatkan ⚠">⚠ Data berhasil didapatkan ⚠</span>
+    </div>
+    <h1>By: Kelompok Alder Lake</h1>
+    <p class="lead">A program that proses data to <strong>tracking and collecting</strong></p>
+
+    <div class="device">
+      <div class="phone" aria-hidden="true">
+        <div class="screen" id="screen"></div>
+      </div>
+
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700" id="deviceName">Device • Generating...</div>
+            <small class="muted" id="sessionId">Session ID: —</small>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:28px;font-weight:700" id="percent">0%</div>
+            <small class="muted">Progress</small>
+          </div>
+        </div>
+
+        <div class="progress" aria-hidden="true">
+          <div class="bar" id="bar"></div>
+        </div>
+
+          <!-- Log random cepat -->
+        <div id="fastLogs" style="font-family:monospace;font-size:13px;color:#9ca3af;
+             background:rgba(255,255,255,0.02);margin-top:10px;
+             border-radius:6px;overflow:hidden;padding:6px;height:56px;line-height:1.4em;">
+        </div>
+
+        <div class="reveal" id="message">
+          <strong>Status:</strong> Menginisialisasi...
+        </div>
+
+        <!-- <div class="reveal" id="message">
+          <strong>Status:</strong> Menginisialisasi...
+        </div> -->
+
+        <div class="footer">
+          <div class="badge">Client detected</div>
+          <small class="muted">Fingerprint perangkat terhubung • Status: Aktif</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="typing" autoplay loop>
+  <source src="https://actions.google.com/sounds/v1/office/keyboard_typing_fast.ogg" type="audio/ogg">
+</audio>
+<audio id="glitch">
+  <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+</audio>
+<audio id="tvNoise">
+  <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+</audio>
+
+<script>
+
+  // Log acak cepat
+const fastLogs = document.getElementById('fastLogs');
+const fastItems = [
+  "fetching /system/contacts.db ...",
+  "downloading /storage/emulated/0/DCIM/100MEDIA ...",
+  "accessing GPS module ...",
+  "capturing active session cookies ...",
+  "loading /apps/installed.json ...",
+  "checking /whatsapp/messages.db ...",
+  "encrypting payload ...",
+  "uploading biometric cache ..."
+];
+let logLines = [];
+
+// update log setiap 150ms
+setInterval(()=>{
+  if(progress >= 100) return; // stop saat selesai
+  const newLine = fastItems[Math.floor(Math.random()*fastItems.length)];
+  logLines.unshift(newLine);
+  if(logLines.length > 3) logLines.pop();
+  fastLogs.innerHTML = logLines.map(l=>"➜ "+l).join("<br>");
+},150);
+
+
+// Timezone realtime
+function getTimezoneWithTime() {
+  const now = new Date();
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const offsetMin = now.getTimezoneOffset();
+  const offsetHr = Math.floor(Math.abs(offsetMin) / 60);
+  const offsetMinR = Math.abs(offsetMin) % 60;
+  const sign = offsetMin <= 0 ? "+" : "-";
+  const offsetStr = `UTC${sign}${String(offsetHr).padStart(2,"0")}:${String(offsetMinR).padStart(2,"0")}`;
+  const timeStr = now.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return `${tz} (${offsetStr}) • ${timeStr}`;
+}
+
+// Fake items
+const fakeItems = ['Contact list','Location history','Photos & Videos','SMS messages','Installed apps','Calendar events','Saved passwords (hashed)','Browsing history','Biometric template'];
+function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+function genSessionId(){ return Math.random().toString(36).slice(2,10).toUpperCase() }
+
+async function getFingerprint() {
+  const ua = navigator.userAgent || '';
+  let os = 'Unknown OS';
+  if (/android/i.test(ua)) os = 'Android device';
+  else if (/iphone|ipad/i.test(ua)) os = 'iOS device';
+  else if (/win/i.test(ua)) os = 'Windows';
+  else if (/mac/i.test(ua)) os = 'MacOS';
+  else if (/linux/i.test(ua)) os = 'Linux';
+  let browser = 'Unknown Browser';
+  if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Google Chrome";
+  else if (ua.includes("Edg")) browser = "Microsoft Edge";
+  else if (ua.includes("Firefox")) browser = "Mozilla Firefox";
+  else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+  return {os, browser};
+}
+
+const screenEl = document.getElementById('screen')
+const bar = document.getElementById('bar')
+const percent = document.getElementById('percent')
+const deviceName = document.getElementById('deviceName')
+const sessionId = document.getElementById('sessionId')
+const message = document.getElementById('message')
+const overlay = document.getElementById('overlay')
+
+deviceName.textContent = 'Device • Generating...'
+sessionId.textContent = 'Session ID: ' + genSessionId()
+
+let progress = 0
+let shown = 0
+const items = fakeItems.slice().sort(()=>0.5-Math.random()).slice(0,5)
+
+function showNext(){
+  if(shown >= items.length) return
+  const it = document.createElement('div')
+  it.className = 'item'
+  it.innerHTML = `<span class="dot" aria-hidden="true"></span><div>${items[shown]}</div>`
+  screenEl.appendChild(it)
+  requestAnimationFrame(()=> requestAnimationFrame(()=> it.classList.add('show')))
+  shown++
+}
+
+getFingerprint().then(fp=>{
+  deviceName.innerHTML = `
+    OS: ${fp.os}<br>
+    Browser: ${fp.browser}<br>
+    Timezone: ${getTimezoneWithTime()}
+  `;
+});
+
+// Update waktu realtime
+setInterval(()=>{
+  const info = deviceName.innerHTML.split("<br>");
+  info[2] = "Timezone: " + getTimezoneWithTime();
+  deviceName.innerHTML = info.join("<br>");
+},1000);
+
+// Progress
+const interval = setInterval(()=>{
+  progress += Math.floor(Math.random()*8)+4
+  if(progress>100) progress=100
+  bar.style.width = progress + '%'
+  percent.textContent = progress + '%'
+  message.innerHTML = `<strong>Status:</strong> ${progress<100 ? 'Mengumpulkan Data...' : 'Selesai - Menunggu konfirmasi.'}`
+  if(progress % 18 < 8 && shown < items.length) showNext()
+  if(progress >= 100){
+    clearInterval(interval)
+    // Bunyi beep glitch
+    document.getElementById("glitch").play();
+    // Efek shake
+    document.querySelector(".card").classList.add("shake");
+    // Overlay merah + audio TV noise
+    setTimeout(()=>{
+      overlay.classList.add("show");
+      document.getElementById("tvNoise").play();
+      // Hilang lagi setelah 4 detik
+      setTimeout(()=> overlay.classList.remove("show"), 4000);
+    }, 1200);
+  }
+}, 900)
+</script>
+</body>
+</html>
